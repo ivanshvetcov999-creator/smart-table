@@ -1,7 +1,6 @@
 import {createComparison, defaultRules} from "../lib/compare.js";
 
 // @todo: #4.3 — настроить компаратор
-// ВАЖНО: Эта строчка должна быть строго здесь, на самом верху файла!
 const compare = createComparison(defaultRules); 
 
 export function initFiltering(elements, indexes) {
@@ -29,11 +28,30 @@ export function initFiltering(elements, indexes) {
             }
             const fieldName = action.dataset.field;
             if (fieldName && fieldName in state) {
-                state[fieldName] = ''; // сбрасываем значение в объекте состояния
+                state[fieldName] = ''; 
             }
         }
         
         // @todo: #4.5 — отфильтровать данные используя компаратор
-        return data.filter(row => compare(row, state));
+        return data.filter(row => {
+            const matchesDefault = compare(row, state);
+            if (!matchesDefault) return false;
+
+            const rowTotal = parseFloat(row.total ?? 0); 
+
+            
+            if (state.totalFrom && state.totalFrom.trim() !== '') {
+                const fromValue = parseFloat(state.totalFrom);
+                if (rowTotal < fromValue) return false; 
+            }
+
+            
+            if (state.totalTo && state.totalTo.trim() !== '') {
+                const toValue = parseFloat(state.totalTo);
+                if (rowTotal > toValue) return false; 
+            }
+
+            return true; 
+        });
     }
 }
